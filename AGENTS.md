@@ -115,7 +115,15 @@
   `gh repo view --json isPrivate` (`false`) and the GitHub contents API that only the intended
   files are present — no `bin/`, `obj/`, or `artifacts/`. Repository:
   https://github.com/shebaaa7/jellyfin-collection-tag-rules
-- Not yet done: cutting an actual GitHub release (tagged version + zip asset) and publishing a
-  real `manifest.json` pointing at it — the README's "Installation" section currently documents
-  the manifest URL Jellyfin would use, but that file doesn't exist in the repo yet, so adding the
-  repository URL in a Jellyfin dashboard today would 404. Do that as an explicit follow-up.
+- **Release cut 2026-09-11, with approval.** Rebuilt Release DLL, zipped just the DLL
+  (`jellyfin-collection-tag-rules_1.0.0.0.zip`, matching the sibling projects' convention), MD5
+  `9b0152b7ca1a1eb0301732c7be1a5aed`. Tagged `v1.0.0`, pushed the tag, created the GitHub release
+  via `gh release create` with the zip attached. Added `manifest.json` (guid, name,
+  description/overview, `targetAbi: "12.0.0.0"`, `sourceUrl` pointing at the release asset,
+  checksum, timestamp), committed and pushed. **Verified, not just assumed:** downloaded the
+  release asset fresh via `curl` and confirmed its MD5 matches the manifest's `checksum` exactly;
+  confirmed `manifest.json` is actually live and correct at
+  `https://raw.githubusercontent.com/shebaaa7/jellyfin-collection-tag-rules/master/manifest.json`
+  — the URL a Jellyfin dashboard's Repositories page would fetch. The README's Installation
+  section's repository-URL instructions are now accurate; adding that URL under
+  Dashboard → Plugins → Repositories on a real server would work.
