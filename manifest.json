@@ -1,0 +1,20 @@
+[
+    {
+        "guid": "5cb39fd3-a820-4504-b235-13158ea91d4f",
+        "name": "Collection Tag Rules",
+        "description": "Scheduled task that auto-tags items missing every marker tag in a rule with the rule's exclude tag, and removes it again once a marker tag is added, so you can filter the dashboard by what a group is not.",
+        "overview": "Rule-based auto-tagging for filtering out a group's items",
+        "owner": "shebaaa7",
+        "category": "General",
+        "versions": [
+            {
+                "version": "1.0.0.0",
+                "changelog": "Initial release: rule-based collection tagging (marker tags / exclude tag / item types), self-correcting scheduled task.",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/shebaaa7/jellyfin-collection-tag-rules/releases/download/v1.0.0/jellyfin-collection-tag-rules_1.0.0.0.zip",
+                "checksum": "9b0152b7ca1a1eb0301732c7be1a5aed",
+                "timestamp": "2026-09-11T12:06:00Z"
+            }
+        ]
+    }
+]
