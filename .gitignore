@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+.idea/
+artifacts/
+.dotnet-cli/
+.dotnet-sdk-10/
+.nuget-packages/
+
+# Keep machine-specific and private notes out of the repository.
+CLAUDE.local.md

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Collection Tag Rules</title>
+</head>
+<body>
+    <div id="TagRulesConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="TagRulesConfigForm">
+                    <div class="verticalSection">
+                        <h2 class="sectionTitle">Tag rules</h2>
+                        <p>
+                            Each rule adds its "exclude tag" to any item that has none of its "marker tags", and
+                            removes the exclude tag again from any item that later gains a marker tag. Add one rule
+                            per grouping you want to filter by &mdash; for example, marker tags
+                            <code>Kids</code> and <code>Family</code> with exclude tag
+                            <code>Not Kids Content</code> lets you filter the Collections screen down to everything
+                            that isn't marked for kids. Changes take effect the next time the
+                            "Apply collection tag rules" scheduled task runs (Dashboard &rarr; Scheduled Tasks
+                            &rarr; Library), or immediately via that task's Run Now button.
+                        </p>
+                        <div id="RuleEditors"></div>
+                        <div>
+                            <button id="AddRuleButton" is="emby-button" type="button" class="raised button-cancel block emby-button">
+                                <span>Add rule</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var pluginConfig = {
+                    pluginUniqueId: '5cb39fd3-a820-4504-b235-13158ea91d4f'
+                };
+
+                var itemTypeOptions = [
+                    { value: 'BoxSet', label: 'Collections (Box Sets)' },
+                    { value: 'Series', label: 'TV Series' },
+                    { value: 'Movie', label: 'Movies' },
+                    { value: 'MusicAlbum', label: 'Music Albums' },
+                    { value: 'Playlist', label: 'Playlists' }
+                ];
+
+                var page = document.querySelector('#TagRulesConfigPage');
+                var form = document.querySelector('#TagRulesConfigForm');
+                var editors = document.querySelector('#RuleEditors');
+                var addRuleButton = document.querySelector('#AddRuleButton');
+
+                function createRuleEditor(rule) {
+                    rule = rule || { Enabled: true, ExcludeTag: '', MarkerTags: [], ItemTypes: [] };
+
+                    var container = document.createElement('div');
+                    container.className = 'paperList ruleEditor';
+                    container.style.padding = '1em';
+                    container.style.marginBottom = '1em';
+
+                    var enabledLabel = document.createElement('label');
+                    var enabledCheckbox = document.createElement('input');
+                    enabledCheckbox.type = 'checkbox';
+                    enabledCheckbox.setAttribute('is', 'emby-checkbox');
+                    enabledCheckbox.className = 'ruleEnabled';
+                    enabledCheckbox.checked = rule.Enabled !== false;
+                    enabledLabel.appendChild(enabledCheckbox);
+                    enabledLabel.appendChild(document.createTextNode(' Rule enabled'));
+                    container.appendChild(enabledLabel);
+
+                    var excludeLabel = document.createElement('label');
+                    excludeLabel.className = 'inputLabel inputLabelUnfocused';
+                    excludeLabel.textContent = 'Exclude tag';
+                    var excludeInput = document.createElement('input');
+                    excludeInput.setAttribute('is', 'emby-input');
+                    excludeInput.type = 'text';
+                    excludeInput.className = 'emby-input ruleExcludeTag';
+                    excludeInput.value = rule.ExcludeTag || '';
+                    excludeInput.placeholder = 'e.g. Not Kids Content';
+                    container.appendChild(excludeLabel);
+                    container.appendChild(excludeInput);
+
+                    var markerLabel = document.createElement('label');
+                    markerLabel.className = 'inputLabel inputLabelUnfocused';
+                    markerLabel.textContent = 'Marker tags (one per line)';
+                    var markerTextarea = document.createElement('textarea');
+                    markerTextarea.setAttribute('is', 'emby-textarea');
+                    markerTextarea.className = 'emby-textarea ruleMarkerTags';
+                    markerTextarea.rows = 4;
+                    markerTextarea.style.width = '100%';
+                    markerTextarea.value = (rule.MarkerTags || []).join('\n');
+                    container.appendChild(markerLabel);
+                    container.appendChild(markerTextarea);
+
+                    var typesLabel = document.createElement('div');
+                    typesLabel.className = 'fieldDescription';
+                    typesLabel.textContent = 'Item types to scan:';
+                    container.appendChild(typesLabel);
+
+                    var typesContainer = document.createElement('div');
+                    typesContainer.className = 'ruleItemTypes';
+                    var selectedTypes = rule.ItemTypes || [];
+                    itemTypeOptions.forEach(function (option) {
+                        var optionLabel = document.createElement('label');
+                        optionLabel.className = 'checkboxContainer';
+                        var checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.setAttribute('is', 'emby-checkbox');
+                        checkbox.className = 'ruleItemType';
+                        checkbox.value = option.value;
+                        checkbox.checked = selectedTypes.indexOf(option.value) !== -1;
+                        optionLabel.appendChild(checkbox);
+                        optionLabel.appendChild(document.createTextNode(' ' + option.label + ' (' + option.value + ')'));
+                        typesContainer.appendChild(optionLabel);
+                    });
+                    container.appendChild(typesContainer);
+
+                    var removeButton = document.createElement('button');
+                    removeButton.setAttribute('is', 'emby-button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'raised button-delete block emby-button removeRuleButton';
+                    removeButton.style.marginTop = '0.5em';
+                    var removeSpan = document.createElement('span');
+                    removeSpan.textContent = 'Remove rule';
+                    removeButton.appendChild(removeSpan);
+                    removeButton.addEventListener('click', function () {
+                        container.remove();
+                    });
+                    container.appendChild(removeButton);
+
+                    return container;
+                }
+
+                addRuleButton.addEventListener('click', function () {
+                    editors.appendChild(createRuleEditor(null));
+                });
+
+                function loadPage() {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginConfig.pluginUniqueId).then(function (configuration) {
+                        editors.replaceChildren();
+                        (configuration.Rules || []).forEach(function (rule) {
+                            editors.appendChild(createRuleEditor(rule));
+                        });
+                        Dashboard.hideLoadingMsg();
+                    }, function () {
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                page.addEventListener('pageshow', loadPage);
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    Dashboard.showLoadingMsg();
+
+                    ApiClient.getPluginConfiguration(pluginConfig.pluginUniqueId).then(function (configuration) {
+                        configuration.Rules = Array.from(editors.querySelectorAll('.ruleEditor')).map(function (ruleContainer) {
+                            var markerTags = ruleContainer.querySelector('.ruleMarkerTags').value
+                                .split('\n')
+                                .map(function (tag) { return tag.trim(); })
+                                .filter(function (tag) { return tag.length > 0; });
+
+                            var itemTypes = Array.from(ruleContainer.querySelectorAll('.ruleItemType'))
+                                .filter(function (checkbox) { return checkbox.checked; })
+                                .map(function (checkbox) { return checkbox.value; });
+
+                            return {
+                                Enabled: ruleContainer.querySelector('.ruleEnabled').checked,
+                                ExcludeTag: ruleContainer.querySelector('.ruleExcludeTag').value.trim(),
+                                MarkerTags: markerTags,
+                                ItemTypes: itemTypes
+                            };
+                        });
+
+                        ApiClient.updatePluginConfiguration(pluginConfig.pluginUniqueId, configuration)
+                            .then(function (result) {
+                                Dashboard.processPluginConfigurationUpdateResult(result);
+                            });
+                    });
+
+                    return false;
+                });
+            }());
+        </script>
+    </div>
+</body>
+</html>
