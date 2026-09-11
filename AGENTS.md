@@ -100,5 +100,22 @@
   tags restored to their original state, plugin config reset to `{"Rules":[]}`. No exceptions
   logged at any point.
 - Both platforms (Windows dev server, Linux VM) now confirmed working end to end, add and remove
-  paths both proven live on at least one platform. Not yet done: release packaging, GitHub
-  publication.
+  paths both proven live on at least one platform.
+- Doctor Who example content (README, `configPage.html` help text/placeholder, test fixtures)
+  replaced with a generic Kids/Family example before going public — real-content examples aren't
+  in scope for this plugin the way real library names were for `jellyfin-ignore-per-library`, but
+  genericized anyway per the same lesson.
+- **Made public 2026-09-11, with approval.** No prior git repo existed for this project (unlike
+  ignore-per-library, which had to rewrite history to scrub leaked secrets before its own public
+  push) — this one was git-init'd fresh, so there was no history to audit or rewrite. Ran the same
+  audit anyway before the first commit: grepped all tracked file contents for name/hostname/IP/
+  credential/API-key patterns — clean (the Windows server's API key and other environment details
+  live only in the gitignored root `../CLAUDE.md`, never in this repo). `gh repo create
+  shebaaa7/jellyfin-collection-tag-rules --public`, pushed `master`. Verified via
+  `gh repo view --json isPrivate` (`false`) and the GitHub contents API that only the intended
+  files are present — no `bin/`, `obj/`, or `artifacts/`. Repository:
+  https://github.com/shebaaa7/jellyfin-collection-tag-rules
+- Not yet done: cutting an actual GitHub release (tagged version + zip asset) and publishing a
+  real `manifest.json` pointing at it — the README's "Installation" section currently documents
+  the manifest URL Jellyfin would use, but that file doesn't exist in the repo yet, so adding the
+  repository URL in a Jellyfin dashboard today would 404. Do that as an explicit follow-up.
